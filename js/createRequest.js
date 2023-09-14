@@ -35,36 +35,36 @@ postRequest("/book", {
 
 sdnojckgkhb*/
 
-async function fetchData(url, requestData, callback) {
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: requestData,
-    });
+"use strict";
 
-    if (response.status === 404) {
-      throw new Error("Resource not found");
-    } else if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
+function createRequest(requestBody, requestSource, callback) {
+  const xhr = new XMLHttpRequest(); 
 
-    let data;
-    try {
-      data = await response.json();
-    } catch (error) {
-      console.error("Error parsing JSON:", error);
-      return; // Останавливаем выполнение функции
-    }
+  xhr.open("POST", "https://jscp-diplom.netoserver.ru/"); 
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); 
+  xhr.send(requestBody);
 
-    if (typeof callback === 'function') {
-      callback(data);
+  xhr.onload = function () {
+    if (xhr.status == 200) {
+      callback(xhr.response);
+    } else {
+        alert("Ошибка: " + xhr.status);
+      return;
     }
-  } catch (error) {
-    console.error("Error fetching data:", error);
-  }
+  };
+
+  xhr.onerror = function () {
+    alert("Запрос не удался");
+  };
 }
 
-export default fetchData;
+function setItem(key, value) {
+  const jsonValue = JSON.stringify(value);
+    return window.sessionStorage.setItem(key, jsonValue);
+}
+
+function getItem(key) {
+    return window.sessionStorage.JSON.parse(getItem(key));
+}
+
+
