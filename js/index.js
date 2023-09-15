@@ -40,15 +40,11 @@ function updateCalendar() {
   const pageNavDay = document.querySelectorAll(".page-nav__day");
   pageNavDay.forEach((element) => {
     element.dataset.dayTimeStamp = selectedDay.setHours(0, 0, 0, 0);
-
     const pageNavDayWeek = element.querySelector(".page-nav__day-week");
     const pageNavDayNumber = element.querySelector(".page-nav__day-number");
-
-    if (pageNavDayWeek) {
       pageNavDayWeek.textContent = selectedDay.toLocaleDateString("ru-RU", {weekday: "short"});
       pageNavDayNumber.textContent = selectedDay.getDate();
-    }
-
+  
     if (selectedDay.getDay() === 0 || selectedDay.getDay() === 6) {
       element.classList.add("page-nav__day_weekend");
     } else {
@@ -69,33 +65,33 @@ function contentUpdate(serverResponse) {
   const seances = response.seances.result;
 
   // Сохраним конфигурацию залов в объект для sessionStorage
-  const configHalls = {};
+  const hallConfig = {};
 
   // Наполнение страницы
 
   // timestamp выбранного дня
   // @ts-ignore
   const selectedDayTimeStamp = (document.querySelector("nav .page-nav__day_chosen")).dataset.dayTimeStamp;
-  const nowTimeStamp = Date.now();
+  const dateNow = Date.now();
 
   // Секция film
   const mainSection = document.querySelector("main");
   // @ts-ignore
   mainSection.innerHTML = "";
 
-  films.forEach((elementFilm) => {
+  films.forEach((element) => {
     const textHtml = `
         <section class="movie">
           <div class="movie__info">
             <div class="movie__poster">
-              <img class="movie__poster-image" alt="${elementFilm.film_name} постер" src="${elementFilm.film_poster}">
+              <img class="movie__poster-image" alt="${element.film_name} постер" src="${element.film_poster}">
             </div>
             <div class="movie__description">
-              <h2 class="movie__title">${elementFilm.film_name}</h2>
-              <p class="movie__synopsis">${elementFilm.film_description}</p>
+              <h2 class="movie__title">${element.film_name}</h2>
+              <p class="movie__synopsis">${element.film_description}</p>
               <p class="movie__data">
-                <span class="movie__data-duration">${elementFilm.film_duration} минут</span>
-                <span class="movie__data-origin">${elementFilm.film_origin}</span>
+                <span class="movie__data-duration">${element.film_duration} минут</span>
+                <span class="movie__data-origin">${element.film_origin}</span>
               </p>
             </div>
           </div>
@@ -109,10 +105,10 @@ function contentUpdate(serverResponse) {
 
     halls.forEach(elementHall => {
 
-      configHalls[elementHall.hall_id] = elementHall.hall_config;
+      hallConfig[elementHall.hall_id] = elementHall.hall_config;
 
       const arrSeancesCurrentFilmAndHall = seances.filter((seance, index, array) => {
-        return seance.seance_filmid === elementFilm.film_id && seance.seance_hallid === elementHall.hall_id;
+        return seance.seance_filmid === element.film_id && seance.seance_hallid === elementHall.hall_id;
       });
       // Добавляем пробел между словом зал и номером зала  
       const hallNameText = `${elementHall.hall_name.slice(0, 3)} ${elementHall.hall_name.slice(3).trim()}`;
@@ -135,15 +131,15 @@ function contentUpdate(serverResponse) {
           const seanceTimeStamp = +selectedDayTimeStamp + (+elementSeance.seance_start * 60 * 1000);
 
           // Если сеанс еще не начался:
-          if (nowTimeStamp < seanceTimeStamp) {
+          if (dateNow < seanceTimeStamp) {
             const textHtml = `
-                <li class="movie-seances__time-block"><a class="movie-seances__time" href="hall.html" data-film-id=${elementFilm.film_id} data-film-name="${elementFilm.film_name}" data-hall-id=${elementHall.hall_id} data-hall-name="${hallNameText}" data-price-vip=${elementHall.hall_price_vip} data-price-standart=${elementHall.hall_price_standart} data-seance-id=${elementSeance.seance_id} data-seance-time=${elementSeance.seance_time} data-seance-start=${elementSeance.seance_start} data-seance-time-stamp=${seanceTimeStamp}>${elementSeance.seance_time}</a></li>
+                <li class="movie-seances__time-block"><a class="movie-seances__time" href="hall.html" data-film-id=${element.film_id} data-film-name="${element.film_name}" data-hall-id=${elementHall.hall_id} data-hall-name="${hallNameText}" data-price-vip=${elementHall.hall_price_vip} data-price-standart=${elementHall.hall_price_standart} data-seance-id=${elementSeance.seance_id} data-seance-time=${elementSeance.seance_time} data-seance-start=${elementSeance.seance_start} data-seance-time-stamp=${seanceTimeStamp}>${elementSeance.seance_time}</a></li>
               `;
             // @ts-ignore
             mooviSeancesList.insertAdjacentHTML("beforeend", textHtml);
           } else {
             const textHtml = `
-            <li class="movie-seances__time-block"><a class="movie-seances__time acceptin-button-disabled" href="#" data-film-id=${elementFilm.film_id} data-film-name="${elementFilm.film_name}" data-hall-id=${elementHall.hall_id} data-hall-name="${hallNameText}" data-price-vip=${elementHall.hall_price_vip} data-price-standart=${elementHall.hall_price_standart} data-seance-id=${elementSeance.seance_id} data-seance-time=${elementSeance.seance_time} data-seance-start=${elementSeance.seance_start} data-seance-time-stamp=${seanceTimeStamp}>${elementSeance.seance_time}</a></li>
+            <li class="movie-seances__time-block"><a class="movie-seances__time acceptin-button-disabled" href="#" data-film-id=${element.film_id} data-film-name="${element.film_name}" data-hall-id=${elementHall.hall_id} data-hall-name="${hallNameText}" data-price-vip=${elementHall.hall_price_vip} data-price-standart=${elementHall.hall_price_standart} data-seance-id=${elementSeance.seance_id} data-seance-time=${elementSeance.seance_time} data-seance-start=${elementSeance.seance_start} data-seance-time-stamp=${seanceTimeStamp}>${elementSeance.seance_time}</a></li>
           `;
       // @ts-ignore
       mooviSeancesList.insertAdjacentHTML("beforeend", textHtml);
@@ -155,7 +151,7 @@ function contentUpdate(serverResponse) {
 
   // Запишем данные залов в SessionStorage через JSON
   // @ts-ignore
-  setItem("config-halls", configHalls);
+  setItem("config-halls", hallConfig);
 // Добавление слушателей событий
   addListeners();
 }
