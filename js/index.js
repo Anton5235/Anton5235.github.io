@@ -38,17 +38,17 @@ function updateCalendar() {
   let selectedDay = thisDay;
 
   const pageNavDay = document.querySelectorAll(".page-nav__day");
-  pageNavDay.forEach((element) => {
-    element.dataset.dayTimeStamp = selectedDay.setHours(0, 0, 0, 0);
-    const pageNavDayWeek = element.querySelector(".page-nav__day-week");
-    const pageNavDayNumber = element.querySelector(".page-nav__day-number");
+  pageNavDay.forEach((elementFilm) => {
+    elementFilm.dataset.dayTimeStamp = selectedDay.setHours(0, 0, 0, 0);
+    const pageNavDayWeek = elementFilm.querySelector(".page-nav__day-week");
+    const pageNavDayNumber = elementFilm.querySelector(".page-nav__day-number");
       pageNavDayWeek.textContent = selectedDay.toLocaleDateString("ru-RU", {weekday: "short"});
       pageNavDayNumber.textContent = selectedDay.getDate();
   
     if (selectedDay.getDay() === 0 || selectedDay.getDay() === 6) {
-      element.classList.add("page-nav__day_weekend");
+      elementFilm.classList.add("page-nav__day_weekend");
     } else {
-      element.classList.remove("page-nav__day_weekend");
+      elementFilm.classList.remove("page-nav__day_weekend");
     };
 selectedDay.setDate(selectedDay.getDate() + 1);
   });
@@ -74,41 +74,36 @@ function contentUpdate(serverResponse) {
   const selectedDayTimeStamp = (document.querySelector("nav .page-nav__day_chosen")).dataset.dayTimeStamp;
   const dateNow = Date.now();
 
-  // Секция film
-  const mainSection = document.querySelector("main");
-  // @ts-ignore
-  mainSection.innerHTML = "";
-
-  films.forEach((element) => {
+  films.forEach((elementFilm) => {
     const textHtml = `
         <section class="movie">
           <div class="movie__info">
             <div class="movie__poster">
-              <img class="movie__poster-image" alt="${element.film_name} постер" src="${element.film_poster}">
+              <img class="movie__poster-image" alt="${elementFilm.film_name} постер" src="${elementFilm.film_poster}">
             </div>
             <div class="movie__description">
-              <h2 class="movie__title">${element.film_name}</h2>
-              <p class="movie__synopsis">${element.film_description}</p>
+              <h2 class="movie__title">${elementFilm.film_name}</h2>
+              <p class="movie__synopsis">${elementFilm.film_description}</p>
               <p class="movie__data">
-                <span class="movie__data-duration">${element.film_duration} минут</span>
-                <span class="movie__data-origin">${element.film_origin}</span>
+                <span class="movie__data-duration">${elementFilm.film_duration} минут</span>
+                <span class="movie__data-origin">${elementFilm.film_origin}</span>
               </p>
             </div>
           </div>
         </section>
       `;
-    // @ts-ignore
-    mainSection.insertAdjacentHTML("beforeend", textHtml);
+    const main = document.querySelector("main");
+    main.insertAdjacentHTML("beforeend", textHtml);
 
     // Секция hall
-    const movieSection = mainSection?.querySelector(".movie:last-child");
+    const movieSection = main.querySelector(".movie:last-child");
 
     halls.forEach(elementHall => {
 
       hallConfig[elementHall.hall_id] = elementHall.hall_config;
 
       const arrSeancesCurrentFilmAndHall = seances.filter((seance, index, array) => {
-        return seance.seance_filmid === element.film_id && seance.seance_hallid === elementHall.hall_id;
+        return seance.seance_filmid === elementFilm.film_id && seance.seance_hallid === elementHall.hall_id;
       });
       // Добавляем пробел между словом зал и номером зала  
       const hallNameText = `${elementHall.hall_name.slice(0, 3)} ${elementHall.hall_name.slice(3).trim()}`;
@@ -133,13 +128,13 @@ function contentUpdate(serverResponse) {
           // Если сеанс еще не начался:
           if (dateNow < seanceTimeStamp) {
             const textHtml = `
-                <li class="movie-seances__time-block"><a class="movie-seances__time" href="hall.html" data-film-id=${element.film_id} data-film-name="${element.film_name}" data-hall-id=${elementHall.hall_id} data-hall-name="${hallNameText}" data-price-vip=${elementHall.hall_price_vip} data-price-standart=${elementHall.hall_price_standart} data-seance-id=${elementSeance.seance_id} data-seance-time=${elementSeance.seance_time} data-seance-start=${elementSeance.seance_start} data-seance-time-stamp=${seanceTimeStamp}>${elementSeance.seance_time}</a></li>
+                <li class="movie-seances__time-block"><a class="movie-seances__time" href="hall.html" data-film-id=${elementFilm.film_id} data-film-name="${elementFilm.film_name}" data-hall-id=${elementHall.hall_id} data-hall-name="${hallNameText}" data-price-vip=${elementHall.hall_price_vip} data-price-standart=${elementHall.hall_price_standart} data-seance-id=${elementSeance.seance_id} data-seance-time=${elementSeance.seance_time} data-seance-start=${elementSeance.seance_start} data-seance-time-stamp=${seanceTimeStamp}>${elementSeance.seance_time}</a></li>
               `;
             // @ts-ignore
             mooviSeancesList.insertAdjacentHTML("beforeend", textHtml);
           } else {
             const textHtml = `
-            <li class="movie-seances__time-block"><a class="movie-seances__time acceptin-button-disabled" href="#" data-film-id=${element.film_id} data-film-name="${element.film_name}" data-hall-id=${elementHall.hall_id} data-hall-name="${hallNameText}" data-price-vip=${elementHall.hall_price_vip} data-price-standart=${elementHall.hall_price_standart} data-seance-id=${elementSeance.seance_id} data-seance-time=${elementSeance.seance_time} data-seance-start=${elementSeance.seance_start} data-seance-time-stamp=${seanceTimeStamp}>${elementSeance.seance_time}</a></li>
+            <li class="movie-seances__time-block"><a class="movie-seances__time acceptin-button-disabled" href="#" data-film-id=${elementFilm.film_id} data-film-name="${elementFilm.film_name}" data-hall-id=${elementHall.hall_id} data-hall-name="${hallNameText}" data-price-vip=${elementHall.hall_price_vip} data-price-standart=${elementHall.hall_price_standart} data-seance-id=${elementSeance.seance_id} data-seance-time=${elementSeance.seance_time} data-seance-start=${elementSeance.seance_start} data-seance-time-stamp=${seanceTimeStamp}>${elementSeance.seance_time}</a></li>
           `;
       // @ts-ignore
       mooviSeancesList.insertAdjacentHTML("beforeend", textHtml);
@@ -160,8 +155,8 @@ function contentUpdate(serverResponse) {
 function onDayClick(event) {
   event.preventDefault();
   const pageNavDay = document.querySelectorAll(".page-nav__day");
-  pageNavDay.forEach((element) => {
-    element.classList.remove("page-nav__day_chosen");
+  pageNavDay.forEach((elementFilm) => {
+    elementFilm.classList.remove("page-nav__day_chosen");
   });
 
   event.currentTarget.classList.add("page-nav__day_chosen");
@@ -181,13 +176,13 @@ function onSeanceClick(event) {
 function addListeners() {
   // Добавляем слушалку на клик по дате
   const pageNavDay = document.querySelectorAll(".page-nav__day");
-  pageNavDay.forEach(element => {
-    element.addEventListener("click", onDayClick);
+  pageNavDay.forEach(elementFilm => {
+    elementFilm.addEventListener("click", onDayClick);
   });
 
   // Добавляем слушалку на клик по сеансу
   const movieSeancesTime = document.querySelectorAll(".movie-seances__time");
-  movieSeancesTime.forEach(element => {
-    element.addEventListener("click", onSeanceClick);
+  movieSeancesTime.forEach(elementFilm => {
+    elementFilm.addEventListener("click", onSeanceClick);
   });
 }
