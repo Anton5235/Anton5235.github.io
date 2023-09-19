@@ -57,24 +57,39 @@ function updateData() {
   createRequest("event=update", "MAIN", contentUpdate);
 };
 
-function dateSeanceClick() {
-  pageNavDay.forEach(element => {
-    element.addEventListener("click", (event) => {
-      event.preventDefault();
-      pageNavDay.forEach((element) => {
-        element.classList.remove("page-nav__day_chosen");
-      });
-      event.currentTarget.classList.add("page-nav__day_chosen");
-      updateData();
-    });
+function onDayClick(event) {
+  event.preventDefault();
+  const pageNavDay = document.querySelectorAll(".page-nav__day");
+  pageNavDay.forEach((element) => {
+    element.classList.remove("page-nav__day_chosen");
   });
 
+  event.currentTarget.classList.add("page-nav__day_chosen");
+// Вызываем функцию обновления данных
+  updateData();
+}
+
+// Обработчик Клика по сеансу
+function onSeanceClick(event) {
+  const seanceData = this.dataset;
+
+// Записываем данные о выбранном сеансе в SessionStorage
+  // @ts-ignore
+  setItem("data-of-the-selected-seance", seanceData);
+ 
+}
+// Добавление слушалку событий
+function addListeners() {
+  // Добавляем слушалку на клик по дате
+  const pageNavDay = document.querySelectorAll(".page-nav__day");
+  pageNavDay.forEach(element => {
+    element.addEventListener("click", onDayClick);
+  });
+
+  // Добавляем слушалку на клик по сеансу
   const movieSeancesTime = document.querySelectorAll(".movie-seances__time");
   movieSeancesTime.forEach(element => {
-    element.addEventListener("click", () => {
-      const seanceData = this.dataset;
-      setItem("data-of-the-selected-seance", seanceData);
-    });
+    element.addEventListener("click", onSeanceClick);
   });
 }
 function contentUpdate(serverResponse) {
@@ -141,6 +156,7 @@ function contentUpdate(serverResponse) {
   });
 
   setItem("config-halls", hallLayout);
-  dateSeanceClick();
+  addListeners();
 }
-
+const get = getItem("data-of-the-selected-seance")
+console.log(get)
