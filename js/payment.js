@@ -2,7 +2,7 @@
 // Дождемся загрузки всего HTML-документа перед выполнением скрипта
 document.addEventListener("DOMContentLoaded", () => {
 // Получаем данные о билете из хранилища
-  const ticketDetails = getItem("ticket-details");
+  const ticketDetails = getJson("ticket-details");
 // Находим контейнер для информации о билете
   const ticketInfoWrapper = document.querySelector(".ticket__info-wrapper");
   ticketInfoWrapper.innerHTML = "";
@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
   acceptinButton?.addEventListener("click", () => {
 
 // Получаем объект с информацией о зале и его конфигурации
-    const hallsConfigurationObj = getItem("pre-config-halls-paid-seats"); // из JSON в объект
+    const hallsConfigurationObj = getJson("pre-config-halls-paid-seats"); // из JSON в объект
     const hallConfiguration = hallsConfigurationObj[ticketDetails.hallId];
 
 // Формируем строку запроса для создания заказа на оплату

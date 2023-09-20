@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 const pageNavDay = document.querySelectorAll(".page-nav__day");
 function updateCalendar() {
-  let selectedDay = new Date(Date.now());
+  const selectedDay = new Date(Date.now());
  
   pageNavDay.forEach((elememt) => {
     elememt.dataset.dayTimeStamp = selectedDay.setHours(0, 0, 0, 0);
@@ -16,9 +16,11 @@ function updateCalendar() {
       pageNavDayWeek.textContent = selectedDay.toLocaleDateString("ru-RU", {weekday: "short"});
       pageNavDayNumber.textContent = selectedDay.getDate();
   
-    if (selectedDay.getDay() === 0 || selectedDay.getDay() === 6) {
+    if (pageNavDayWeek.textContent === 'сб' || pageNavDayWeek.textContent === 'вс') {
       elememt.classList.add("page-nav__day_weekend");
-    } 
+    } else{
+      elememt.classList.remove("page-nav__day_weekend");
+    }
     selectedDay.setDate(selectedDay.getDate() + 1);
   });
 }
@@ -39,7 +41,7 @@ function daySelection(event) {
 
 function seanceSelection() {
   const seanceData = this.dataset;
-  setItem("data-of-the-selected-seance", seanceData);
+  setJson("data-of-the-selected-seance", seanceData);
 }
 
 function listenerSelectedDaySeance() {
@@ -82,7 +84,7 @@ function contentUpdate(serverResponse) {
         </section>`;
     main.insertAdjacentHTML("beforeend", html);
 
-    halls.forEach(elementHall => {
+    halls.forEach((elementHall) => {
       hallLayout[elementHall.hall_id] = elementHall.hall_config;
       const currentFilmsSeancesHalls = seances.filter((seance) => {
         return seance.seance_filmid === element.film_id && seance.seance_hallid === elementHall.hall_id;
@@ -117,7 +119,7 @@ function contentUpdate(serverResponse) {
     });
   });
 
-  setItem("config-halls", hallLayout);
+  setJson("config-halls", hallLayout);
   listenerSelectedDaySeance();
 }
 

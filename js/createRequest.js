@@ -19,12 +19,12 @@ function createRequest(requestBody, requestSource, callback) {
   };
 }
 
-function setItem(key, value) {
+function setJson(key, value) {
   const jsonValue = JSON.stringify(value);
     return window.sessionStorage.setItem(key, jsonValue);
 }
 
-function getItem(key) {
+function getJson(key) {
   const item = window.sessionStorage.getItem(key)
     return JSON.parse(item);
    

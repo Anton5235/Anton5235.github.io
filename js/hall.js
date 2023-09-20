@@ -1,70 +1,58 @@
-"use strict";
+"use strict"
 
 document.addEventListener("DOMContentLoaded", () => {
-  const dataSelectedSeance = getItem("data-of-the-selected-seance");
-  const timestamp = dataSelectedSeance && +dataSelectedSeance.seanceTimeStamp / 1000 || 0;
-  const hallId = dataSelectedSeance.hallId;
-  const seanceId = dataSelectedSeance.seanceId;
+  const dataOfTheSelectedSeance = getJson("data-of-the-selected-seance");
+  const timestamp = dataOfTheSelectedSeance && +dataOfTheSelectedSeance.seanceTimeStamp / 1000 || 0;
+  const hallId = dataOfTheSelectedSeance.hallId;
+  const seanceId = dataOfTheSelectedSeance.seanceId;
   const requestBody = `event=get_hallConfig&timestamp=${timestamp}&hallId=${hallId}&seanceId=${seanceId}`;
-  createRequest(requestBody, "HALL", hallUpdate);
+  createRequest(requestBody, "HALL", updateHtmlHall);
 });
-
-function hallUpdate(response) {
-  const parseResponse = JSON.parse(response);
-  const dataSelectedSeance = getItem("data-of-the-selected-seance");
-
-  let selectedHallConfig;
-  let configHalls = getItem("config-halls");
-
-  if (parseResponse !== null) {
-    selectedHallConfig = parseResponse; 
-  } else {
-    selectedHallConfig = configHalls[dataSelectedSeance.hallId];
-  }
+// Функция для обновления разметки зала
+function updateHtmlHall(response) {
+  const dataOfTheSelectedSeance = getJson("data-of-the-selected-seance");
+  const configSelectedHall = JSON.parse(response);
+  let configHalls = getJson("config-halls");
+  const buyingInfoSection = document.querySelector(".buying__info")
+  buyingInfoSection.innerHTML = "";
+  const buyingInfoHtml = 
+  `<div class="buying__info-description">
+    <h2 class="buying__info-title">"${dataOfTheSelectedSeance.filmName}"</h2>
+    <p class="buying__info-start">Начало сеанса: ${dataOfTheSelectedSeance.seanceTime
+    } </br>
+    ${new Date(+dataOfTheSelectedSeance.seanceTimeStamp).toLocaleDateString(
+      "ru-RU",
+      { day: "2-digit", month: "long", year: "numeric" }
+    )}</p>
+    <p class="buying__info-hall">${dataOfTheSelectedSeance.hallName}</p>          
+  </div>
+  <div class="buying__info-hint">
+    <p>Тапните дважды,<br>чтобы увеличить</p>
+  </div>`;
+  buyingInfoSection.insertAdjacentHTML("beforeend", buyingInfoHtml);
 
   const confStep = document.querySelector(".conf-step");
-  const textHtmlConf = `
-  <div class="conf-step__wrapper">
-  ${selectedHallConfig}
-  </div>`;
   confStep.innerHTML = "";
-  confStep.insertAdjacentHTML("beforeend", textHtmlConf);
-
-  const textHtmlLegend = `
-    <div class="conf-step__legend">
+  let confStepHtml = 
+  `<div class="conf-step__wrapper">
+    ${configSelectedHall}
+  </div>
+  <div class="conf-step__legend">
     <div class="col">
       <p class="conf-step__legend-price"><span class="conf-step__chair conf-step__chair_standart"></span> Свободно (<span
-          class="conf-step__legend-value price-standart">${dataSelectedSeance.priceStandart}</span>руб)</p>
+          class="conf-step__legend-value price-standart">${dataOfTheSelectedSeance.priceStandart}</span>руб)</p>
       <p class="conf-step__legend-price"><span class="conf-step__chair conf-step__chair_vip"></span> Свободно VIP (<span
-          class="conf-step__legend-value price-vip">${dataSelectedSeance.priceVip}</span>руб)</p>
+          class="conf-step__legend-value price-vip">${dataOfTheSelectedSeance.priceVip}</span>руб)</p>
     </div>
     <div class="col">
       <p class="conf-step__legend-price"><span class="conf-step__chair conf-step__chair_taken"></span> Занято</p>
       <p class="conf-step__legend-price"><span class="conf-step__chair conf-step__chair_selected"></span> Выбрано</p>
     </div>
   </div>`;
-  confStep.insertAdjacentHTML("beforeend", textHtmlLegend);
+  confStep.insertAdjacentHTML("beforeend", confStepHtml);
 
-  const buyingInfoSection = document.querySelector(".buying__info");
-  const buyingInfoHtml = `
-  <div class="buying__info-description">
-    <h2 class="buying__info-title">"${dataSelectedSeance.filmName}"</h2>
-    <p class="buying__info-start">Начало сеанса: ${dataSelectedSeance.seanceTime} </br>
-    ${new Date(+dataSelectedSeance.seanceTimeStamp).toLocaleDateString(
-      "ru-RU",
-      { day: "2-digit", month: "long", year: "numeric" }
-    )}</p>
-    <p class="buying__info-hall">${dataSelectedSeance.hallName}</p>          
-  </div>
-  <div class="buying__info-hint">
-    <p>Тапните дважды,<br>чтобы увеличить</p>
-  </div>`;
-  buyingInfoSection.innerHTML = "";
-  buyingInfoSection.insertAdjacentHTML("beforeend", buyingInfoHtml);
 
-  const selectedChairs = [];
-  const confStepChair = document.querySelectorAll( ".conf-step__wrapper .conf-step__chair");
-
+  const confStepChair = document.querySelectorAll(".conf-step__wrapper .conf-step__chair");
   confStepChair.forEach((element) => {
     element.addEventListener("click", (event) => {
       const elementClickClassList = event.currentTarget.classList;
@@ -74,69 +62,55 @@ function hallUpdate(response) {
       element.classList.toggle("conf-step__chair_selected");
     });
   });
-
+  const selectedChairs = [];
   const acceptinButton = document.querySelector(".acceptin-button");
+  acceptinButton.addEventListener('click', () => { 	// при нажатии на кнопку
+		let selectedPlaces = Array.from(document.querySelectorAll('.conf-step__row .conf-step__chair_selected'));
 
-  acceptinButton.addEventListener("click", (event) => {
-    event.preventDefault();
-    const arrRow = Array.from(document.querySelectorAll(".conf-step__row"));
-
-    for (let index = 0; index < arrRow.length; index++) {
-      const indexRow = arrRow[index];
-      const arrChairs = Array.from(indexRow.querySelectorAll(".conf-step__chair"));
-
-      for (let indexChair = 0; indexChair < arrChairs.length; indexChair++) {
-        const elementChair = arrChairs[indexChair];
-        if (elementChair.classList.contains("conf-step__chair_selected")) {
-          const typeChair = elementChair.classList.contains("conf-step__chair_vip")? "vip": "standart";
-          selectedChairs.push({
-            row: indexRow + 1,
-            place: indexChair + 1,
-            typeChair: typeChair,
-          });
-        }
-      }
-    }
+		selectedPlaces.forEach((chair) => { 	
+			let row = chair.closest('.conf-step__row'); 	
+			let rowIndex = Array.from(row.parentNode.children).indexOf(row) + 1; 	
+			let chairIndex = Array.from(row.children).indexOf(chair) + 1; 	
+			let chairOption = (chair.classList.contains('conf-step__chair_standart')) ? 'standart' : 'vip'; 	
+			selectedChairs.push({ 	
+				row: rowIndex, 		
+				place: chairIndex, 
+				type: chairOption		
+			});
+		});
 
     if (selectedChairs.length) {
-      setItem("data-of-the-selected-chairs", selectedChairs);
-      const configSelectedHallHtml = document.querySelector(".conf-step__wrapper");
-      configHalls[dataSelectedSeance.hallId] = configSelectedHallHtml;
-      configSelectedHallHtml.innerHTML = "";
-      setItem("config-halls", configHalls);
-
+      setJson("data-selected-chairs", selectedChairs);
+      const confStepWrapper = document.querySelector(".conf-step__wrapper")?.innerHTML.trim();
+      configHalls[dataOfTheSelectedSeance.hallId] = confStepWrapper;
+      setJson("config-halls", configHalls);
       confStepChair.forEach((element) => {
         element.classList.replace("conf-step__chair_selected", "conf-step__chair_taken");
       });
 
-      const configSelectedHallTaken = document.querySelector(".conf-step__wrapper");
-      const configHallsTaken = getItem("config-halls");
-      configHallsTaken[dataSelectedSeance.hallId] = configSelectedHallTaken;
-      configSelectedHallTaken.innerHTML = "";
-      setItem("pre-config-halls-paid-seats", configHallsTaken);
+      const dataSelectedChairs = getJson("data-selected-chairs");
 
-      const dataOfTheSelectedChairs = getItem("data-of-the-selected-chairs");
-
+      // Считаем общую стоимость билетов и формируем строку выбранных мест
       const arrRowPlace = [];
-      let totalCost = 0;
+      let counter = 0;
 
-      dataOfTheSelectedChairs.forEach(element => {
+      dataSelectedChairs.forEach(element => {
         arrRowPlace.push(`${element.row}/${element.place}`);
-        totalCost += element.typeChair === "vip" ? +dataSelectedSeance.priceVip : +dataSelectedSeance.priceStandart;
+        counter += element.typeChair === "vip" ? +dataOfTheSelectedSeance.priceVip : +dataOfTheSelectedSeance.priceStandart;
       });
 
-      const strRowPlace = arrRowPlace.join(", ");
-
       const ticketDetails = {
-        ...dataSelectedSeance,
-        strRowPlace: strRowPlace,
-        hallNameNumber: dataSelectedSeance.hallName.slice(3).trim(),
-        seanceTimeStampInSec: +dataSelectedSeance.seanceTimeStamp / 1000,
-        seanceDay: new Date(+dataSelectedSeance.seanceTimeStamp).toLocaleDateString("ru-RU", { day: "2-digit", month: "short", year: "numeric" }),
-        totalCost: totalCost,
+        ...dataOfTheSelectedSeance,
+        strRowPlace: arrRowPlace,
+        hallNameNumber: dataOfTheSelectedSeance.hallName.slice(3).trim(),
+        seanceTimeStampInSec: +dataOfTheSelectedSeance.seanceTimeStamp / 1000,
+        seanceDay: new Date(+dataOfTheSelectedSeance.seanceTimeStamp).toLocaleDateString("ru-RU", { day: "2-digit", month: "short", year: "numeric" }),
+        totalCost: counter,
       };
+   
 
-      setItem("ticket-details", ticketDetails);
+      setJson("ticket-details", ticketDetails);
+     
 
       window.location.href = "payment.html";
     }
