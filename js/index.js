@@ -7,15 +7,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 const pageNavDay = document.querySelectorAll(".page-nav__day");
 function updateCalendar() {
+
+  /* Выставляем даты в шапке*/
   const selectedDay = new Date(Date.now());
- 
   pageNavDay.forEach((elememt) => {
     elememt.dataset.dayTimeStamp = selectedDay.setHours(0, 0, 0, 0);
     const pageNavDayWeek = elememt.querySelector(".page-nav__day-week");
     const pageNavDayNumber = elememt.querySelector(".page-nav__day-number");
       pageNavDayWeek.textContent = selectedDay.toLocaleDateString("ru-RU", {weekday: "short"});
       pageNavDayNumber.textContent = selectedDay.getDate();
-  
+  /* Красим выходные в красный*/
     if (pageNavDayWeek.textContent === 'сб' || pageNavDayWeek.textContent === 'вс') {
       elememt.classList.add("page-nav__day_weekend");
     } else{
@@ -24,49 +25,48 @@ function updateCalendar() {
     selectedDay.setDate(selectedDay.getDate() + 1);
   });
 }
-
+/* Обновляем данные через запрос*/
 function updateData() {
   createRequest("event=update", "MAIN", contentUpdate);
 };
-
+/* Делаем даты в шапке кликабельными и обновляем данные*/
 function daySelection(event) {
   event.preventDefault();
-  const pageNavDay = document.querySelectorAll(".page-nav__day");
   pageNavDay.forEach((element) => {
     element.classList.remove("page-nav__day_chosen");
   });
   event.currentTarget.classList.add("page-nav__day_chosen");
   updateData();
 }
-
-function seanceSelection() {
-  const seanceData = this.dataset;
-  setJson("data-of-the-selected-seance", seanceData);
-}
-
+/* Ставим слушатель кликов на даты и сеансы*/
 function listenerSelectedDaySeance() {
-  const pageNavDay = document.querySelectorAll(".page-nav__day");
   pageNavDay.forEach(element => {
     element.addEventListener("click", daySelection);
   });
 
   const movieSeancesTime = document.querySelectorAll(".movie-seances__time");
   movieSeancesTime.forEach(element => {
-    element.addEventListener("click", seanceSelection);
-  });
+    element.addEventListener("click", () => {
+    const seanceData = this.dataset;
+    setJson("data-of-the-selected-seance", seanceData);
+    })
+  })
 }
+/* Блок обновления данных в секции выбора фильмов*/
 function contentUpdate(serverResponse) {
   const response = JSON.parse(serverResponse);
+  /* Получаем фильмы, залы, сеансы*/
   const films = response.films.result;
   const halls = response.halls.result.filter((item) => item.hall_open !== "0");
   const seances = response.seances.result;
   const selectedDayTimeStamp = (document.querySelector("nav .page-nav__day_chosen")).dataset.dayTimeStamp;
   const dateNow = Date.now();
-  const hallLayout = {};
+  const hallLayout = {}; /*Объект в котором сохраним в последующем конфигурацию залов*/
   const main = document.querySelector("main");
   main.innerHTML = "";
+  /* Отрисовка блока с информацией о фильме*/
   films.forEach((element) => {
-    const html = `
+    const movieBlock = `
         <section class="movie">
           <div class="movie__info">
             <div class="movie__poster">
@@ -76,49 +76,48 @@ function contentUpdate(serverResponse) {
               <h2 class="movie__title">${element.film_name}</h2>
               <p class="movie__synopsis">${element.film_description}</p>
               <p class="movie__data">
-                <span class="movie__data-duration">${element.film_duration} минут</span>
+                <span class="movie__data-duration">${element.film_duration} мин.</span>
                 <span class="movie__data-origin">${element.film_origin}</span>
               </p>
             </div>
           </div>
         </section>`;
-    main.insertAdjacentHTML("beforeend", html);
+    main.insertAdjacentHTML("beforeend", movieBlock);
 
     halls.forEach((elementHall) => {
-      hallLayout[elementHall.hall_id] = elementHall.hall_config;
-      const currentFilmsSeancesHalls = seances.filter((seance) => {
-        return seance.seance_filmid === element.film_id && seance.seance_hallid === elementHall.hall_id;
-      });
-      const hallNameNumber = `${elementHall.hall_name.slice(0, 3)} ${elementHall.hall_name.slice(3)}`;
-
+      const currentFilmsSeancesHalls = seances.filter((seance) => { return seance.seance_filmid === element.film_id && seance.seance_hallid === elementHall.hall_id;});
+      const numberHall = elementHall.hall_name;
+      /*Блок с номером зала*/
       if (currentFilmsSeancesHalls.length) {
-        const html = `
-            <div class="movie-seances__hall">
-              <h3 class="movie-seances__hall-title">${hallNameNumber}</h3>
+         const numberHallBlock = 
+         `<div class="movie-seances__hall">
+              <h3 class="movie-seances__hall-title">${numberHall}</h3>
               <ul class="movie-seances__list">
               </ul>
             </div> `;
         const movie = main.querySelector(".movie:last-child");
-        movie.insertAdjacentHTML("beforeend", html);
+        movie.insertAdjacentHTML("beforeend", numberHallBlock);
+        
         const movieSeances = movie.querySelector(".movie-seances__hall:last-child > .movie-seances__list");
         currentFilmsSeancesHalls.forEach(elementSeance => {
           const seanceTimeStamp = +selectedDayTimeStamp + (+elementSeance.seance_start * 60 * 1000);
-
-          const htmlMovie = `<li class="movie-seances__time-block">
-          <a class="movie-seances__time" href="hall.html" data-film-id=${element.film_id} data-film-name="${element.film_name}" data-hall-id=${elementHall.hall_id} data-hall-name="${hallNameNumber}" data-price-vip=${elementHall.hall_price_vip} data-price-standart=${elementHall.hall_price_standart} data-seance-id=${elementSeance.seance_id} data-seance-time=${elementSeance.seance_time} data-seance-start=${elementSeance.seance_start} data-seance-time-stamp=${seanceTimeStamp}>${elementSeance.seance_time}</a></li>`;
+          /* Если фильм не начался, вносим блок с возможностью покупки билета на конкретные фильм/дата, если начался button = disabled*/
+          const seancesNoDisabled = `<li class="movie-seances__time-block">
+          <a class="movie-seances__time" href="hall.html" data-film-id=${element.film_id} data-film-name="${element.film_name}" data-hall-id=${elementHall.hall_id} data-hall-name="${numberHall}" data-price-vip=${elementHall.hall_price_vip} data-price-standart=${elementHall.hall_price_standart} data-seance-id=${elementSeance.seance_id} data-seance-time=${elementSeance.seance_time} data-seance-start=${elementSeance.seance_start} data-seance-time-stamp=${seanceTimeStamp}>${elementSeance.seance_time}</a></li>`;
           if (dateNow < seanceTimeStamp) {
           
-            movieSeances.insertAdjacentHTML("beforeend", htmlMovie);
+            movieSeances.insertAdjacentHTML("beforeend", seancesNoDisabled);
           } else {
-            const html = `<li class="movie-seances__time-block">
-            <a class="movie-seances__time acceptin-button-disabled" href="#" data-film-id=${element.film_id} data-film-name="${element.film_name}" data-hall-id=${elementHall.hall_id} data-hall-name="${hallNameNumber}" data-price-vip=${elementHall.hall_price_vip} data-price-standart=${elementHall.hall_price_standart} data-seance-id=${elementSeance.seance_id} data-seance-time=${elementSeance.seance_time} data-seance-start=${elementSeance.seance_start} data-seance-time-stamp=${seanceTimeStamp}>${elementSeance.seance_time}</a></li>`;
-           movieSeances.insertAdjacentHTML("beforeend", html);
+            const seancesDisabled = `<li class="movie-seances__time-block">
+            <a class="movie-seances__time acceptin-button-disabled" href="#" data-film-id=${element.film_id} data-film-name="${element.film_name}" data-hall-id=${elementHall.hall_id} data-hall-name="${numberHall}" data-price-vip=${elementHall.hall_price_vip} data-price-standart=${elementHall.hall_price_standart} data-seance-id=${elementSeance.seance_id} data-seance-time=${elementSeance.seance_time} data-seance-start=${elementSeance.seance_start} data-seance-time-stamp=${seanceTimeStamp}>${elementSeance.seance_time}</a></li>`;
+           movieSeances.insertAdjacentHTML("beforeend", seancesDisabled);
+           hallLayout[elementHall.hall_id] = elementHall.hall_config;
+
           }
         });
       };
     });
   });
-
   setJson("config-halls", hallLayout);
   listenerSelectedDaySeance();
 }
