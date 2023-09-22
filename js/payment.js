@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
   acceptinButton?.addEventListener("click", () => {
 
 // Получаем объект с информацией о зале и его конфигурации
-    const hallsConfigurationObj = getJson("pre-config-halls-paid-seats"); // из JSON в объект
+    const hallsConfigurationObj = getJson("config-halls"); // из JSON в объект
     const hallConfiguration = hallsConfigurationObj[ticketDetails.hallId];
 
 // Формируем строку запроса для создания заказа на оплату
