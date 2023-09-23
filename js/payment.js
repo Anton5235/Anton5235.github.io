@@ -14,9 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
       <p class="ticket__hint">После оплаты билет будет доступен в этом окне, а также придёт вам на почту. Покажите QR-код нашему контроллёру у входа в зал.</p>
       <p class="ticket__hint">Приятного просмотра!</p> `;
   ticketInfoWrapper.insertAdjacentHTML("beforeend", ticketBlock);
+  /* Ставим слушатель клика на кнопке получения кода, переходим в ticket*/
   const acceptinButton = document.querySelector(".acceptin-button");
   acceptinButton.addEventListener("click", () => {
-
     const hallConfigJson = getJson("config-halls"); 
     const hallConfiguration = hallConfigJson[ticketDetails.hallId];
 

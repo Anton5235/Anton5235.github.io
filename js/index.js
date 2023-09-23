@@ -61,7 +61,6 @@ function contentUpdate(serverResponse) {
           </div>
         </section>`;
     main.insertAdjacentHTML("beforeend", movieBlock);
-    // Секция hall
 
     halls.forEach((elementHall) => {
       const currentFilmsSeancesHalls = seances.filter((seance) => { return seance.seance_filmid === element.film_id && seance.seance_hallid === elementHall.hall_id;});
@@ -96,15 +95,10 @@ function contentUpdate(serverResponse) {
       hallLayout[elementHall.hall_id] = elementHall.hall_config;
     });
   })
-
-  
-  // Запишем данные залов в SessionStorage через JSON
-  // @ts-ignore
   setJson("config-halls", hallLayout);
-// Добавление слушателей событий
-  addListeners();
+  seanceDayListen();
 }
-
+/*Формируем переключение в шапке с датами, сохраняем данные по выбранному сеансу, устанавливаем слушатель*/
 function clickDay(event) {
   event.preventDefault();
   pageNavDay.forEach((element) => {
@@ -118,7 +112,7 @@ function clickSeance() {
   const seanceData = this.dataset;
   setJson("data-selected-seance", seanceData);
 }
-function addListeners() {
+function seanceDayListen() {
   pageNavDay.forEach(element => {
     element.addEventListener("click", clickDay);
   });
