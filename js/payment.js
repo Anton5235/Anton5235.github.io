@@ -1,13 +1,10 @@
 "use strict";
-// Дождемся загрузки всего HTML-документа перед выполнением скрипта
 document.addEventListener("DOMContentLoaded", () => {
-// Получаем данные о билете из хранилища
   const ticketDetails = getJson("ticket-details");
-// Находим контейнер для информации о билете
   const ticketInfoWrapper = document.querySelector(".ticket__info-wrapper");
   ticketInfoWrapper.innerHTML = "";
-// Генерируем HTML-разметку для информации о билете и добавляем ее в контейнер
-  const textHtml = `
+  /*Заполняем блок с инфо о билете*/
+  const ticketBlock = `
       <p class="ticket__info">На фильм: <span class="ticket__details ticket__title">${ticketDetails.filmName}</span></p>
       <p class="ticket__info">Ряд/Место: <span class="ticket__details ticket__chairs">${ticketDetails.strRowPlace}</span></p>
       <p class="ticket__info">В зале: <span class="ticket__details ticket__hall">${ticketDetails.hallNameNumber}</span></p>
@@ -15,25 +12,19 @@ document.addEventListener("DOMContentLoaded", () => {
       <p class="ticket__info">Стоимость: <span class="ticket__details ticket__cost">${ticketDetails.totalCost}</span> рублей</p>
       <button class="acceptin-button">Получить код бронирования</button>
       <p class="ticket__hint">После оплаты билет будет доступен в этом окне, а также придёт вам на почту. Покажите QR-код нашему контроллёру у входа в зал.</p>
-      <p class="ticket__hint">Приятного просмотра!</p>
-    `;
-  ticketInfoWrapper.insertAdjacentHTML("beforeend", textHtml);
-// Находим кнопку "Получить код бронирования"
+      <p class="ticket__hint">Приятного просмотра!</p> `;
+  ticketInfoWrapper.insertAdjacentHTML("beforeend", ticketBlock);
   const acceptinButton = document.querySelector(".acceptin-button");
-  acceptinButton?.addEventListener("click", () => {
+  acceptinButton.addEventListener("click", () => {
 
-// Получаем объект с информацией о зале и его конфигурации
-    const hallsConfigurationObj = getJson("config-halls"); // из JSON в объект
-    const hallConfiguration = hallsConfigurationObj[ticketDetails.hallId];
+    const hallConfigJson = getJson("config-halls"); 
+    const hallConfiguration = hallConfigJson[ticketDetails.hallId];
 
-// Формируем строку запроса для создания заказа на оплату
-    const requestBodyString = `event=sale_add&timestamp=${ticketDetails.seanceTimeStampInSec}&hallId=${ticketDetails.hallId}&seanceId=${ticketDetails.seanceId}&hallConfiguration=${hallConfiguration}`;
-// Отправляем запрос на сервер для оплаты и обновления информации
-    createRequest(requestBodyString, "PAYMENT", updateHtmlPayment, true);
+    const requestBody = `event=sale_add&timestamp=${ticketDetails.seanceTimeStampInSec}&hallId=${ticketDetails.hallId}&seanceId=${ticketDetails.seanceId}&hallConfiguration=${hallConfiguration}`;
+    createRequest(requestBody, "PAYMENT", updateTicketPayment);
   });
-// Функция для обновления информации после оплаты
-  function updateHtmlPayment(serverResponse) {
-// Перенаправляем пользователя на страницу с билетом
+
+  function updateTicketPayment() {
     window.location.href = "ticket.html";
   }
 });

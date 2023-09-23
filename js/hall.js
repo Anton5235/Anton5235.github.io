@@ -1,7 +1,7 @@
 "use strict";
+
 document.addEventListener("DOMContentLoaded", () => {
-  const dataSelectedSeance = getJson("data-of-the-selected-seance");
-  console.log(dataSelectedSeance)
+  const dataSelectedSeance = getJson("data-selected-seance");
   const timestamp = dataSelectedSeance && +dataSelectedSeance.seanceTimeStamp / 1000 || 0;
   const hallId = dataSelectedSeance.hallId;
   const seanceId = dataSelectedSeance.seanceId;
@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function hallUpdate(response) {
   const parseJson = JSON.parse(response);
 
-  const dataSelectedSeance = getJson("data-of-the-selected-seance");
+  const dataSelectedSeance = getJson("data-selected-seance");
  let configSelectedHall;
   let configHalls = getJson("config-halls");
   if (parseJson) {
@@ -62,7 +62,6 @@ function hallUpdate(response) {
   confStep.innerHTML = "";
   confStep.insertAdjacentHTML("beforeend", confStepBlock);
 
-
   const selectedChairs = []; /* выбранные места будем довавлять сюда*/
  /* Проверка доступности и выбор мест*/
   const confStepChair = document.querySelectorAll(".conf-step__wrapper .conf-step__chair");
@@ -75,16 +74,14 @@ function hallUpdate(response) {
       element.classList.toggle("conf-step__chair_selected");
     });
   });
-
-
-
+  /* Создаем событие для кнопки бронирования*/
   const acceptinButton = document.querySelector(".acceptin-button");
   acceptinButton.addEventListener("click", (event) => {
     event.preventDefault();
-    const arrRows = document.querySelectorAll(".conf-step__row")
+    const confStepRow = document.querySelectorAll(".conf-step__row")
     /* Цикл по рядам*/
-    for (let iRow = 0; iRow < arrRows.length; iRow++) {
-      const elementRow = arrRows[iRow];
+    for (let iRow = 0; iRow < confStepRow.length; iRow++) {
+      const elementRow = confStepRow[iRow];
       const arrayOfChairs = Array.from(
         elementRow.querySelectorAll(".conf-step__chair")
       );
@@ -93,7 +90,6 @@ function hallUpdate(response) {
         const elementChair = arrayOfChairs[iChair];
         if (elementChair.classList.contains("conf-step__chair_selected")) {
           const typeChair = elementChair.classList.contains( "conf-step__chair_vip") ? "vip": "standart";
-
           selectedChairs.push({
             row: iRow + 1,
             place: iChair + 1,
@@ -102,6 +98,7 @@ function hallUpdate(response) {
         }
       }
     }
+    /* Если в массиве есть выбранные места, записываем в конфиг, переприсваиваем класс*/
     if (selectedChairs.length) {
       setJson("selected-chairs-block", selectedChairs);
       const configSelectedHallHtml = document.querySelector(".conf-step__wrapper")?.innerHTML.trim();
@@ -111,28 +108,25 @@ function hallUpdate(response) {
       confStepChair.forEach((element) => {
         element.classList.replace("conf-step__chair_selected", "conf-step__chair_taken");
       });
-      const dataOfTheSelectedChairs = getJson("selected-chairs-block");
-      const arrRowPlace = [];
-      let totalCost = 0;
+      const selectedChairsBlock = getJson("selected-chairs-block");
+      const rowChair = [];
+      let counter = 0; /*Счетчик стоимости билетов*/
 
-      dataOfTheSelectedChairs.forEach(element => {
-        arrRowPlace.push(`${element.row}/${element.place}`);
-        totalCost += element.typeChair === "vip" ? +dataSelectedSeance.priceVip : +dataSelectedSeance.priceStandart;
+      selectedChairsBlock.forEach(element => {
+        rowChair.push(`${element.row}/${element.place}`);
+        counter += element.typeChair === "vip" ? +dataSelectedSeance.priceVip : +dataSelectedSeance.priceStandart;
       });
-
-      const strRowPlace = arrRowPlace.join(", ");
 
       const ticketDetails = {
         ...dataSelectedSeance,
-        strRowPlace: strRowPlace,
-        hallNameNumber: dataSelectedSeance.hallName.slice(3).trim(),
+        hallNameNumber: dataSelectedSeance.hallName,
+        strRowPlace: rowChair,
         seanceTimeStampInSec: +dataSelectedSeance.seanceTimeStamp / 1000,
         seanceDay: new Date(+dataSelectedSeance.seanceTimeStamp).toLocaleDateString("ru-RU", { day: "2-digit", month: "short", year: "numeric" }),
-        totalCost: totalCost,
+        totalCost: counter,
       };
 
       setJson("ticket-details", ticketDetails);
-      
       window.location.href = "payment.html";
     }
   });

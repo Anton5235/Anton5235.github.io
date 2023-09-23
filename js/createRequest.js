@@ -26,9 +26,7 @@ function setJson(key, value) {
 
 function getJson(key) {
   const item = window.sessionStorage.getItem(key)
-  
     return JSON.parse(item);
-   
 }
 
 
